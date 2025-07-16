@@ -1,0 +1,168 @@
+-- 🥚 Egg Detector GUI + ESP with specific pets (by Hannah)
+
+-- GUI Setup
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local ESP = Instance.new("TextButton")
+local AutoRandomize = Instance.new("TextButton")
+local RandomizeOnce = Instance.new("TextButton")
+local Status = Instance.new("TextLabel")
+local Credit = Instance.new("TextLabel")
+
+local runService = game:GetService("RunService")
+local activeESP = false
+local autoMode = true
+
+local petLists = {
+    ["Primal Egg"] = {"Parasaurolophus", "Iguanodon", "Dilophosaurus", "Ankylosaurus", "Spinosaurus", "Triceratops"},
+    ["Dinosaur Egg"] = {"T-Rex", "Raptor", "Triceratops", "Pterodactyl", "Brontosaurus"},
+    ["Night Egg"] = {"Echo Frog", "Raccoon", "Night Owl", "Hedgehog", "Caterpillar"},
+    ["Bug Egg"] = {"Snail", "Giant Ant", "Praying Mantis", "Dragonfly"}
+}
+
+local function randomPetName(eggType)
+    local list = petLists[eggType]
+    if list then
+        return list[math.random(1, #list)]
+    else
+        return "Unknown"
+    end
+end
+
+local function applyESP(egg)
+    if egg:FindFirstChild("PetLabel") then
+        egg.PetLabel.TextLabel.Text = randomPetName(egg.Name)
+        return
+    end
+
+    local gui = Instance.new("BillboardGui", egg)
+    gui.Name = "PetLabel"
+    gui.Size = UDim2.new(0, 100, 0, 30)
+    gui.StudsOffset = Vector3.new(0, 3, 0)
+    gui.AlwaysOnTop = true
+
+    local label = Instance.new("TextLabel", gui)
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = randomPetName(egg.Name)
+    label.TextColor3 = Color3.fromRGB(255, 255, 0)
+    label.TextStrokeTransparency = 0.5
+    label.TextScaled = true
+    label.Font = Enum.Font.SourceSansBold
+end
+
+local function clearESP()
+    for _, egg in pairs(workspace:GetDescendants()) do
+        if egg:IsA("Model") and petLists[egg.Name] then
+            if egg:FindFirstChild("PetLabel") then
+                egg.PetLabel:Destroy()
+            end
+        end
+    end
+end
+
+local function updateESP()
+    if not activeESP then return end
+    for _, egg in pairs(workspace:GetDescendants()) do
+        if egg:IsA("Model") and petLists[egg.Name] then
+            applyESP(egg)
+        end
+    end
+end
+
+-- GUI
+ScreenGui.Name = "EggRandomizerUI"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+Frame.BorderSizePixel = 0
+Frame.Position = UDim2.new(0.05, 0, 0.4, 0)
+Frame.Size = UDim2.new(0, 220, 0, 180)
+
+Title.Parent = Frame
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 10, 0, 5)
+Title.Size = UDim2.new(1, -20, 0, 20)
+Title.Text = "🥚 Egg Detector"
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.Font = Enum.Font.SourceSansBold
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+ESP.Parent = Frame
+ESP.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+ESP.Position = UDim2.new(0.05, 0, 0.2, 0)
+ESP.Size = UDim2.new(0.9, 0, 0.15, 0)
+ESP.Text = "🔍 ESP: OFF"
+ESP.TextColor3 = Color3.new(1, 1, 1)
+ESP.Font = Enum.Font.SourceSans
+ESP.TextSize = 16
+ESP.MouseButton1Click:Connect(function()
+    activeESP = not activeESP
+    ESP.Text = activeESP and "🔍 ESP: ON" or "🔍 ESP: OFF"
+    if not activeESP then
+        clearESP()
+    else
+        updateESP()
+    end
+end)
+
+AutoRandomize.Parent = Frame
+AutoRandomize.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+AutoRandomize.Position = UDim2.new(0.05, 0, 0.4, 0)
+AutoRandomize.Size = UDim2.new(0.9, 0, 0.15, 0)
+AutoRandomize.Text = "🔄 Auto Randomize: ON"
+AutoRandomize.TextColor3 = Color3.new(1, 1, 1)
+AutoRandomize.Font = Enum.Font.SourceSans
+AutoRandomize.TextSize = 16
+AutoRandomize.MouseButton1Click:Connect(function()
+    autoMode = not autoMode
+    AutoRandomize.Text = autoMode and "🔄 Auto Randomize: ON" or "🔄 Auto Randomize: OFF"
+end)
+
+RandomizeOnce.Parent = Frame
+RandomizeOnce.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+RandomizeOnce.Position = UDim2.new(0.05, 0, 0.6, 0)
+RandomizeOnce.Size = UDim2.new(0.9, 0, 0.15, 0)
+RandomizeOnce.Text = "🎲 Randomize Once"
+RandomizeOnce.TextColor3 = Color3.new(1, 1, 1)
+RandomizeOnce.Font = Enum.Font.SourceSans
+RandomizeOnce.TextSize = 16
+RandomizeOnce.MouseButton1Click:Connect(function()
+    updateESP()
+    Status.Text = "Randomize In: " .. math.random(5, 12)
+end)
+
+Status.Parent = Frame
+Status.BackgroundTransparency = 1
+Status.Position = UDim2.new(0.05, 0, 0.78, 0)
+Status.Size = UDim2.new(0.9, 0, 0.1, 0)
+Status.Text = "Randomize In: 9"
+Status.TextColor3 = Color3.new(1, 1, 1)
+Status.Font = Enum.Font.SourceSansItalic
+Status.TextSize = 14
+Status.TextXAlignment = Enum.TextXAlignment.Left
+
+Credit.Parent = Frame
+Credit.BackgroundTransparency = 1
+Credit.Position = UDim2.new(0, 5, 1, -15)
+Credit.Size = UDim2.new(1, -10, 0, 12)
+Credit.Text = "Made By Hannah 🌊"
+Credit.TextColor3 = Color3.fromRGB(150, 150, 150)
+Credit.Font = Enum.Font.SourceSans
+Credit.TextSize = 12
+Credit.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Auto loop
+task.spawn(function()
+    while true do
+        if activeESP and autoMode then
+            updateESP()
+            Status.Text = "Randomize In: " .. math.random(5, 15)
+        end
+        task.wait(3)
+    end
+end)
